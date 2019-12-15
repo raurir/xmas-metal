@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<canvas id="canvas" width="300" height="227"></canvas>
+		<canvas id="zoom" width="300" height="227"></canvas>
+		<script>
+			var img = new Image();
+			img.src = "canvas.z.jpg";
+			img.onload = function() {
+				draw(this);
+			};
+
+			var clamp = a => (a > 100 ? 255 : 0);
+
+			function draw(img) {
+				var canvas = document.getElementById("canvas");
+				canvas.width = img.width;
+				canvas.height = img.height;
+				var ctx = canvas.getContext("2d");
+				ctx.drawImage(img, 0, 0);
+
+				var zoom = document.getElementById("zoom");
+				var zoomctx = zoom.getContext("2d");
+				zoom.width = img.width;
+				zoom.height = img.height;
+
+				zoomctx.drawImage(canvas, 0, 0);
+
+				ctx.scale(0.1, 0.1);
+				ctx.drawImage(img, 0, 0);
+
+				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+				var data = imageData.data;
+
+				for (var i = 0; i < data.length; i += 4) {
+					var r = clamp(data[i]),
+						g = clamp(data[i + 1]),
+						b = clamp(data[i + 2]);
+
+					data[i] = r && g && !b ? 0 : r; // if yellow ditch the red component
+					data[i + 1] = g;
+					data[i + 2] = b;
+				}
+				ctx.putImageData(imageData, 0, 0);
+
+				// zoomctx.drawImage(canvas, 0, 0);
+			}
+		</script>
+	</body>
+</html>
